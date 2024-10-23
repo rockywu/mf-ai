@@ -1,5 +1,4 @@
 from pymilvus import MilvusClient,CollectionSchema,DataType,FieldSchema, model
-from sentence_transformers import SentenceTransformer
 from mysql_helper import query_mysql
 import numpy as np
 import torch
@@ -35,7 +34,7 @@ collection_schema = CollectionSchema(
 
 # 创建集合如果还没有创建的话
 if not client.has_collection(collection_name):
-   client.create_collection(collection_name, schema=collection_schema, shards_num=2)
+   client.create_collection(collection_name=collection_name, schema=collection_schema, shards_num=2)
 
 #加载向量模型
 # 初始化模型并将其加载到 CPU 或 GPU
@@ -45,13 +44,9 @@ sentence_transformer_ef = model.dense.SentenceTransformerEmbeddingFunction(
     device=device
 )
 
-
-# 分页查询和处理
-page_size = 100
-offset = 0
-while True:
+def getQuery(offset, pageSize = 100):
     # SQL 查询语句
-    sql_query = f"""
+    return f"""
         SELECT
             r.store_code,
             r.store_name,
@@ -78,63 +73,52 @@ while True:
             rooms r
         JOIN
             stores s ON r.store_code = s.store_code
-        LIMIT {page_size} OFFSET {offset}
+        LIMIT {pageSize} OFFSET {offset}
     """
 
+
+# 分页查询和处理
+pageSize = 100
+offset = 0
+while True:
     # 查询数据
-    results = query_mysql(sql_query)
+    results = query_mysql(getQuery(offset=offset, pageSize=pageSize))
     if not results:
         break  # 如果没有更多结果，则退出循环
+    # 构建插入数据
+    insert_data_list = []
 
     # 插入每页数据
     for index, record in enumerate(results):
         combined_text = f"{record['city_name']} {record['region_name']} {record['store_address']} {record['store_name']} "
-        embedding = sentence_transformer_ef.encode_documents(combined_text)
+        embedding = sentence_transformer_ef.encode_documents([combined_text])[0]
+        # print('embedding-len', len(embedding))
+        # 确保嵌入的向量长度为 384
+        if len(embedding) != 384:
+            print(f"Warning: Embedding size is {len(embedding)}, but expected 384.")
+            continue  # 跳过不符合维度的记录
+        insert_data = {
+            "room_unique_code": record['room_unique_code'],
+            "store_code": record['store_code'],
+            "region_name": record['region_name'],
+            "store_address": record['store_address'],
+            "store_name": record['store_name'],
+            "city_name": record['city_name'],
+            "embedding": embedding
+        }
+        insert_data_list.append(insert_data)
+    # print('data-list-len', len(insert_data_list))
+    # print('data-list[0]', insert_data_list[0])
 
-        # 例如，截断或补齐向量
-        if len(embedding) > 384:
-            embedding = embedding[:384]
-        elif len(embedding) < 384:
-            embedding = np.pad(embedding, (0, 384 - len(embedding)), 'constant')
-        print('embedding-finish', combined_text)
-
-        insert_data = [
-            record['room_unique_code'],
-            record['store_code'],
-            record['region_name'],
-            record['store_address'],
-            record['store_name'],
-            record['city_name'],
-            embedding
-        ]
-
-        client.insert(collection_name, [insert_data])
-    print('完成序号', offset)
+    res = client.insert(collection_name=collection_name, data=insert_data_list)
+    print('完成序号', offset, '~', offset + pageSize)
 
     # 递增偏移量，以便下次检索下一页
-    offset += page_size
+    offset += pageSize
 
+client.release_collection(collection_name=collection_name)
+client.describe_collection(collection_name=collection_name)
 
 print('关闭连接')
 client.close()
-sys.exit('x')
-
-
-
-# 定义文本向量化模型 # 定义模型并载入到指定设备
-#model = SentenceTransformer("./models/mf-all-MiniLM-L6-v2").to('cuda:0')
-#embedding = model.encode(f"你好么？").tolist()
-embedding = sentence_transformer_ef.encode_documents('你好么？')
-print('embedding', embedding)
-
-
-
-
-
-
-# 在最后刷新集合以确保数据持久化
-
-client.close();
-
-
-
+sys.exit('exit')
