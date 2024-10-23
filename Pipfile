@@ -1,11 +1,12 @@
 [[source]]
-url = "https://pypi.org/simple"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 verify_ssl = true
-name = "pypi"
+name = "tuna"
 
 [packages]
-numpy = "*"
-pybind11 = ">=2.12"
+fastapi = "*"
+pymilvus = "*"
+sentence-transformers = "*"
 pymysql = "*"
 
 [dev-packages]
