@@ -23,7 +23,15 @@ async def recommended(question: Optional[str] = None):
         get_analyze_context_by_type_prompt(type = type, question=question)
     )
     extJson = xml_to_json(extRes)
-    return {'question': question, 'typeJson': typeJson, 'type': type, 'extJson': extJson}
+    if type == 5:
+        return {'question': question, "response": (f"""
+            {extJson.get('content_title', '')}
+            {extJson.get('content_desc', '')}
+            {extJson.get('content_note', '')}
+            """)}
+    else:
+        #尝试从向量数据库中排查数据
+        return {'question': question, 'typeJson': typeJson, 'type': type, 'extJson': extJson}
 
 # 启动应用
 # uvicorn main:app --reload

@@ -21,10 +21,10 @@ def get_context_prompt(question):
             type:4;desc:查就近房源
             type:5;desc:未知类型
         并以如下XML格式返回,只返回xml结构，不需额外描述,返回结构中id只能是1、2、3、4、5："
-            <response>
-                <type>id</type>
-                <desc>desc</desc>
-            </response>"
+        <response>
+            <type>id</type>
+            <desc>desc</desc>
+        </response>"
         """
     )
 
@@ -44,23 +44,26 @@ def get_analyze_context_by_type_prompt(type: int, question):
             f"""
             问题：{question}
             请从以下描述中提取：
-            价格范围: 最小价格price_min， 最大价格 price_max
+            价格范围: 最小价格price_min， 最大价格 price_max, 示例：价格范围都是整数
+            面积范围: 最小价格area_min， 最大价格 area_max，示例：面积范围都是整数
             门店名 stroe_name,门店区域 origin, 用户所在地 location
             期望距离 distance 距离需要转换为整数单位米
             期望地址 address 期望位于附近的门店位置地址
-            期望装修类型 fitment 期望类型只支持一下4种：标准、简装、精装、豪华
+            期望装修类型 decoration 期望类型只支持一下4种：标准、简装、精装、豪华
             期望所在楼层 floor 只返回整数数字，1代表1楼，2代表2楼以此类推
             如果匹配不到相关信息，可以让该字段为空
             并以如下XML格式返回,只返回xml结构，不需额外描述：
             <response>
                 <price_min>value</price_min>
                 <price_max>value</price_max>
+                <area_min>value</area_min>
+                <area_max>value</area_max>
                 <stroe_name>value</stroe_name>
                 <city>value</city>
                 <address>value</address>
                 <origin>value</origin>
                 <location>value</location>
-                <fitment>value</fitment>
+                <decoration>value</decoration>
                 <floor>value</floor>
                 <distance_min>value</distance_min>
                 <distance_max>value</distance_max>

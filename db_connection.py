@@ -1,9 +1,9 @@
 import pymysql
 
-db_host='127.0.0.1'
-db_port=13306
+db_host='home.wujialei.com'
+db_port=11406
 db_user='root'
-db_password='8R4pGVd^'
+db_password='RwHome!0427'
 db_database='mf-ai'
 
 class MySQLConnectionSingleton:

@@ -1,3 +1,4 @@
+import pymysql
 from db_connection import MySQLConnectionSingleton
 
 def query_mysql(query):
