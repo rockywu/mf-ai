@@ -680,14 +680,6 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==0.34.0"
-        },
-        "weaviate-client": {
-            "file": "./libs/weaviate_client-4.8.1-py3-none-any.whl",
-            "hashes": [
-                "sha256:2756996a2205bb991f258c064fc502011fc78a40e8786cb072208b1d3d7c9932",
-                "sha256:c16453ebfd9bd4045675f8e50841d1af21aa9af1332f379d0418c4531c03bd44"
-            ],
-            "markers": "python_version >= '3.8'"
         }
     },
     "develop": {}
