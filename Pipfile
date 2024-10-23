@@ -5,9 +5,9 @@ name = "tuna"
 
 [packages]
 fastapi = "*"
-pymilvus = "*"
 sentence-transformers = "*"
 pymysql = "*"
+pymilvus = {extras = ["model"], version = "*"}
 
 [dev-packages]
 
