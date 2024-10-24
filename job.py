@@ -20,7 +20,7 @@ collection_name = "room_embeddings"
 
 collection_schema = CollectionSchema(
     fields=[
-        FieldSchema(name="room_unique_code", dtype=DataType.VARCHAR, max_length=50, is_primary=True),  # 作为主键
+        FieldSchema(name="room_unique_code", dtype=DataType.VARCHAR, max_length=50, is_primary=True, auto_id=False),  # 作为主键
         FieldSchema(name="store_code", dtype=DataType.VARCHAR, max_length=50),
         FieldSchema(name="region_name", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="store_address", dtype=DataType.VARCHAR, max_length=255),
@@ -34,7 +34,19 @@ collection_schema = CollectionSchema(
 
 # 创建集合如果还没有创建的话
 if not client.has_collection(collection_name):
-   client.create_collection(collection_name=collection_name, schema=collection_schema, shards_num=2)
+    index_params = client.prepare_index_params()
+    index_params.add_index(
+        field_name="embedding", 
+        index_type="IVF_FLAT",
+        metric_type="L2",
+        params={ "nlist": 128 }
+    )
+    client.create_collection(
+        collection_name=collection_name, 
+        schema=collection_schema, 
+        shards_num=2,
+        index_params=index_params
+    )
 
 #加载向量模型
 # 初始化模型并将其加载到 CPU 或 GPU
@@ -78,7 +90,7 @@ def getQuery(offset, pageSize = 100):
 
 
 # 分页查询和处理
-pageSize = 100
+pageSize = 200
 offset = 0
 while True:
     # 查询数据
@@ -110,14 +122,16 @@ while True:
     # print('data-list-len', len(insert_data_list))
     # print('data-list[0]', insert_data_list[0])
 
-    res = client.insert(collection_name=collection_name, data=insert_data_list)
+    res = client.insert(
+        collection_name=collection_name, 
+        data=insert_data_list,
+        sync=True
+    )
     print('完成序号', offset, '~', offset + pageSize)
 
     # 递增偏移量，以便下次检索下一页
     offset += pageSize
 
-client.release_collection(collection_name=collection_name)
-client.describe_collection(collection_name=collection_name)
 
 print('关闭连接')
 client.close()
