@@ -3,14 +3,27 @@
     <scroll-view class="scroll-view" scroll-y scroll-with-animation :scroll-top="top">
       <view style="padding: 30rpx 30rpx 240rpx;">
         <view class="message" :class="[item.userType]" v-for="(item, index) in list" :key="index">
-          <image src="../../static/mf-logo.png" v-if="item.userType === 'friend'" class="avatar" mode="widthFix"></image>
-          <view class="content" v-if="item.messageType === 'image'">
-            <image :src="item.content" mode="widthFix"></image>
+          <image src="../../static/mf-logo.png" v-if="item.userType === 'friend'" class="avatar" mode="widthFix">
+          </image>
+          <view class="content" v-if="item.messageType === 'room'">
+            <div class="links" v-if="item.content && item.content.length > 0">
+              <div>房源推荐：</div>
+              <a :href="row.link" v-for="(row, i) in buildRespRoomTypesCard(item.content)" :key="i">{{row.name}}</a>
+            </div>
+            <div v-else>暂无房源</div>
           </view>
-          <view class="content" v-else>
-            {{ item.content }}
+          <view class="content" v-else-if="item.messageType === 'store'">
+            <div class="links" v-if="item.content && item.content.length > 0">
+              <div>门店推荐：</div>
+              <a :href="row.link" v-for="(row, i) in buildRespStoresCard(item.content)" :key="i">{{row.name}}</a>
+            </div>
+            <div v-else>暂无门店</div>
           </view>
-          <image src="../../static//user-logo.png" v-if="item.userType === 'self'" class="avatar" mode="widthFix"></image>
+          <text class="content" v-else>
+            {{ item.content.trim() }}
+          </text>
+          <image src="../../static//user-logo.png" v-if="item.userType === 'self'" class="avatar" mode="widthFix">
+          </image>
         </view>
       </view>
     </scroll-view>
@@ -23,12 +36,13 @@
 </template>
 
 <script>
-import {Storage, request} from '../../utils'
+import { Storage, request } from '../../utils'
 
 const storage = new Storage('mf-content')
 export default {
   data() {
     return {
+      loading: false,
       content: '',
       list: [],
       top: 0
@@ -54,32 +68,89 @@ export default {
     ]
   },
   methods: {
-    loadRequest() {
-      request({
-      })
+    async reqQuestion(question) {
+      this.loading = true;
+      try {
+        const res = await request({
+          url: `http://172.21.49.98:11803/api/recommended?question=${question}`
+        })
+        this.loading = false;
+        if (res.statusCode === 200 && res.data.code === 200) {
+          return res.data
+        }
+        return res;
+      } catch (e) {
+        this.loading = false;
+      }
     },
     send() {
-      if(!this.content) {
-        uni.showToast({icon: 'none', title: '填写您的找房需求'})
-        return 
+      if (this.loading) return;
+      if (!this.content) {
+        uni.showToast({ icon: 'none', title: '填写您的找房需求' })
+        return
       }
-
       this.list.push({
         content: this.content,
         userType: 'self',
         avatar: this._selfAvatar
       })
-      this.content = ''
-      this.scrollToBottom()
-      // 模拟对方回复
-      setTimeout(() => {
-        this.list.push({
-          content: '好的',
+      const messageTypes = {
+        t_1: 'room',
+        t_2: 'store',
+        t_3: 'store',
+        t_4: 'room',
+        t_5: 'text'
+      }
+      uni.showLoading({title: '...'});
+      this.reqQuestion(this.content).then(res => {
+        const messageType = messageTypes[`t_${res.type}`] || 'text';
+        const rows = res && res.response && res.response.length > 0 ? res.response : [];
+        this.pushMsg({
+          messageType: messageType,
+          content: messageType === 5 ? res.response : rows,
           userType: 'friend',
           avatar: this._friendAvatar
         })
+        uni.hideLoading();
         this.scrollToBottom()
-      }, 1500)
+      }).catch((e) => {
+        uni.hideLoading();
+        this.loading = false;
+        this.pushMsg({
+          messageType: 5,
+          content: '未找到相关信息',
+          userType: 'friend',
+        })
+      })
+      this.content = ''
+      // 模拟对方回复
+      this.scrollToBottom()
+
+    },
+    pushMsg(params) {
+      this.list.push(params)
+    },
+    buildStoreLink(storeCode) {
+      return `https://m.52mf.com/store/${storeCode}`
+    },
+    buildRoomTypeLink(roomTypeCode) {
+      return `https://m.52mf.com/roomType/${roomTypeCode}`
+    },
+    buildRespStoresCard(rows) {
+      return rows.map(v => {
+        return {
+          link: this.buildStoreLink(v.entity.store_code),
+          name: `${v.entity.store_name}(${v.entity.store_address})`
+        }
+      })
+    },
+    buildRespRoomTypesCard(rows) {
+      return rows.map(v => {
+        return {
+          link: this.buildRoomTypeLink(v.entity.room_type_code),
+          name: `${v.entity.long_term_type_name || '-'}`
+        }
+      })
     },
     // chooseImage() {
     //   uni.chooseImage({
@@ -133,6 +204,14 @@ export default {
     height: 80rpx;
     border-radius: 10rpx;
     margin-right: 30rpx;
+  }
+  .links {
+    display: flex;
+    flex-direction: column;
+    a {
+      color: #8080f3;
+      display: block;
+    }
   }
 
   .content {

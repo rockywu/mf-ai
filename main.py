@@ -6,8 +6,23 @@ from typing import Optional
 from ai_utils import xml_to_json
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+# 配置允许的来源
+origins = [
+    "*",  # 本地主机开发
+]
+
+# 添加 CORS 中间件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # 允许的源
+    allow_credentials=True,  # 允许凭证
+    allow_methods=["*"],  # 允许方法
+    allow_headers=["*"],  # 允许头
+)
+
 
 @app.get("/")
 def hello():
@@ -36,27 +51,41 @@ async def recommended(question: Optional[str] = None):
     )
     extJson = xml_to_json(extRes)
     if type == 5:
-        return {'question': question, "response": (f"""
-            {extJson.get('content_title', '')}
-            {extJson.get('content_desc', '')}
-            {extJson.get('content_note', '')}
-            """)}
+        return {
+            'code': 200,
+            'type': type,
+            'desc': typeJson['desc'],
+            'question': question,
+            "response": (f"""
+                {extJson.get('content_title', '')}
+                {extJson.get('content_desc', '')}
+                {extJson.get('content_note', '')}
+            """)
+        }
     vQuestions =encode_queries(questions=[question])
     print(len(vQuestions))
     collection_name='room_embeddings'
     vdb = MilvusDatabase()
     vdb.load_collection(collection_name)
-    reps = vdb.search(
+    resp = vdb.search(
         collection_name=collection_name,
         data=vQuestions,
         anns_field="embedding",
         filter=buildFilter(extJson),
-        output_fields=['room_unique_code', 'store_address', 'store_address', 'store_name'],
+        output_fields=['room_unique_code', 'store_address', 'store_address', 'store_name', 'store_code'],
         limit=10,  # 返回前10条数据
     )
     vdb.close()
     #尝试从向量数据库中排查数据
-    return {'question': question, 'typeJson': typeJson, 'type': type, 'extJson': extJson, 'resp': reps}
+    return {
+        'code': 200,
+        'type': type,
+        'desc': typeJson['desc'],
+        'question': question, 
+        'typeJson': typeJson, 
+        'extJson': extJson, 
+        'response': resp[0] if resp[0] else []
+    }
 
 # 启动应用
 # uvicorn main:app --reload
