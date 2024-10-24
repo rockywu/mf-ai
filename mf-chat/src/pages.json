@@ -1,16 +1,25 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path": "pages/index/chat",
-			"style": {
-				"navigationBarTitleText": "52mf"
+			"path" : "pages/index/message",
+			"style" : 
+			{
+				"navigationBarTitleText" : "魔方智选",
+				"enablePullDownRefresh" : false
 			}
 		}
+		//{
+		//	"path": "pages/index/index",
+		//	"style": {
+		//		"navigationBarTitleText": "消息中心"
+		//	}
+		//},
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
-	}
+	},
+	"uniIdRouter": {}
 }
