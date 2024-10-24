@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import logging
 import sys
+from decimal import Decimal
 
 
 # 初始化 MilvusClient
@@ -20,12 +21,18 @@ collection_name = "room_embeddings"
 
 collection_schema = CollectionSchema(
     fields=[
-        FieldSchema(name="room_unique_code", dtype=DataType.VARCHAR, max_length=50, is_primary=True, auto_id=False),  # 作为主键
+        FieldSchema(name="room_unique_code", dtype=DataType.VARCHAR, max_length=50, is_primary=True),  # 作为主键
+        FieldSchema(name="room_type_code", dtype=DataType.VARCHAR, max_length=50),
         FieldSchema(name="store_code", dtype=DataType.VARCHAR, max_length=50),
+        FieldSchema(name="long_term_type_name", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="region_name", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="store_address", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="store_name", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="city_name", dtype=DataType.VARCHAR, max_length=255),
+        FieldSchema(name="price", dtype=DataType.FLOAT, max_length=255),
+        FieldSchema(name="area", dtype=DataType.INT16, max_length=255),
+        FieldSchema(name="latitude", dtype=DataType.VARCHAR, max_length=255),
+        FieldSchema(name="longitude", dtype=DataType.VARCHAR, max_length=255),
         FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384)  # 根据模型的维度
     ],
     auto_id=False,
@@ -70,6 +77,7 @@ def getQuery(offset, pageSize = 100):
             r.floor,
             r.long_term_type_code,
             r.long_term_type_name,
+            r.room_type_code,
             r.area,
             r.orientation,
             r.light_status,
@@ -102,7 +110,7 @@ while True:
 
     # 插入每页数据
     for index, record in enumerate(results):
-        combined_text = f"{record['city_name']} {record['region_name']} {record['store_address']} {record['store_name']} "
+        combined_text = f"{record['city_name']} {record['region_name'] } {record['store_address']} {record['store_name']} {record['long_term_type_name']} "
         embedding = sentence_transformer_ef.encode_documents([combined_text])[0]
         # print('embedding-len', len(embedding))
         # 确保嵌入的向量长度为 384
@@ -111,11 +119,17 @@ while True:
             continue  # 跳过不符合维度的记录
         insert_data = {
             "room_unique_code": record['room_unique_code'],
+            "room_type_code": record['room_type_code'],
             "store_code": record['store_code'],
-            "region_name": record['region_name'],
+            "long_term_type_name": record['long_term_type_name'],
             "store_address": record['store_address'],
+            "region_name": record['region_name'],
             "store_name": record['store_name'],
             "city_name": record['city_name'],
+            "price": Decimal(record['price']),
+            "area": int(Decimal(record['area'])),
+            "latitude": str(Decimal(record['latitude'])),
+            "longitude": str(Decimal(record['longitude'])),
             "embedding": embedding
         }
         insert_data_list.append(insert_data)

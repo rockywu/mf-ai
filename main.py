@@ -29,10 +29,16 @@ def hello():
     return {"message": "欢迎来到魔方AI推荐"}
 
 
-def buildFilter(params):
+def buildStoreFilter(params):
     filter=[]
     filters = None
     return filters
+
+def buildRoomFilter(params):
+    filter=[]
+    filters = None
+    return filters
+    
     
 
 #获取推荐
@@ -64,17 +70,32 @@ async def recommended(question: Optional[str] = None):
         }
     vQuestions =encode_queries(questions=[question])
     print(len(vQuestions))
-    collection_name='room_embeddings'
+    #type:1 查区域房源, type:2 查区域门店, type:3 查就近门店, type:4 查就近房源, type:5 未知类型
     vdb = MilvusDatabase()
-    vdb.load_collection(collection_name)
-    resp = vdb.search(
-        collection_name=collection_name,
-        data=vQuestions,
-        anns_field="embedding",
-        filter=buildFilter(extJson),
-        output_fields=['room_unique_code', 'store_address', 'store_address', 'store_name', 'store_code'],
-        limit=10,  # 返回前10条数据
-    )
+    if type == 2 or type == 3:
+        #搜索门店
+        print('查门店')
+        collection_name='stores_embeddings'
+        vdb.load_collection(collection_name)
+        resp = vdb.search(
+            collection_name=collection_name,
+            data=vQuestions,
+            anns_field="embedding",
+            filter=buildStoreFilter(extJson),
+            output_fields=['store_address', 'store_address', 'store_name', 'store_code'],
+            limit=10,  # 返回前10条数据
+        )
+    else:
+        collection_name='room_embeddings'
+        vdb.load_collection(collection_name)
+        resp = vdb.search(
+            collection_name=collection_name,
+            data=vQuestions,
+            anns_field="embedding",
+            filter=buildRoomFilter(extJson),
+            output_fields=['room_unique_code', 'room_type_code', 'store_address', 'store_address', 'store_name', 'store_code', 'long_term_type_name'],
+            limit=10,  # 返回前10条数据
+        )
     vdb.close()
     #尝试从向量数据库中排查数据
     return {
