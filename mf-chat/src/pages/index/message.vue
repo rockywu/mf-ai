@@ -148,7 +148,7 @@ export default {
       return rows.map(v => {
         return {
           link: this.buildRoomTypeLink(v.entity.room_type_code),
-          name: `${v.entity.long_term_type_name || '-'}`
+          name: `${v.entity.region_name}${v.entity.store_name}-${v.entity.long_term_type_name || '-'}(价格:${v.entity.price}元/面积：${v.entity.area})`
         }
       })
     },

@@ -30,6 +30,15 @@ class MilvusDatabase:
             limit=limit,
             search_params=search_params
         )
+    def query(self, collection_name, data,limit=10, filter=None, anns_field=None, output_fields=None, search_params=None):
+        return self.client.query(
+            collection_name=collection_name,
+            data=data,
+            filter=filter,
+            output_fields=output_fields,
+            limit=limit,
+            search_params=search_params
+        )
 
     def close(self):
         self.client.close()

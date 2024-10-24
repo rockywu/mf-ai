@@ -7,6 +7,7 @@ from ai_utils import xml_to_json
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
 from fastapi.middleware.cors import CORSMiddleware
+from decimal import Decimal
 
 app = FastAPI()
 # 配置允许的来源
@@ -28,16 +29,34 @@ app.add_middleware(
 def hello():
     return {"message": "欢迎来到魔方AI推荐"}
 
+def to_int(value):
+    return int(value) if isinstance(value, str) and value.isdigit() else -1
+
 
 def buildStoreFilter(params):
-    filter=[]
+    print(params)
     filters = None
     return filters
 
 def buildRoomFilter(params):
-    filter=[]
-    filters = None
-    return filters
+    minPrice = to_int(params['price_min'])
+    maxPirce = to_int(params['price_max'])
+    minArea = to_int(params['area_min'])
+    maxArea = to_int(params['area_max'])
+    filters = []
+    if minPrice >= 0 and maxPirce >= 0:
+        if minPrice == maxPirce:
+            #附近附近查询
+            minPrice = minPrice - minPrice/4
+            maxPirce = maxPirce + maxPirce/4
+        filters.append(f" price >= {minPrice} && price <= {maxPirce} ")
+    if minArea >= 0 and maxArea >= 0:
+        if minArea == maxArea:
+            #附近附近查询
+            minArea = minArea - minArea/4
+            maxArea = maxArea + maxArea/4
+        filters.append(f" area >= {minArea} && area <= {maxArea} ")
+    return  " && ".join(filters) if len(filters) else None
     
     
 
@@ -68,7 +87,9 @@ async def recommended(question: Optional[str] = None):
                 {extJson.get('content_note', '')}
             """)
         }
-    vQuestions =encode_queries(questions=[question])
+    vQuestions =encode_queries(questions=[
+        f"{extJson.get('origin')}",
+    ])
     print(len(vQuestions))
     #type:1 查区域房源, type:2 查区域门店, type:3 查就近门店, type:4 查就近房源, type:5 未知类型
     vdb = MilvusDatabase()
@@ -82,21 +103,34 @@ async def recommended(question: Optional[str] = None):
             data=vQuestions,
             anns_field="embedding",
             filter=buildStoreFilter(extJson),
-            output_fields=['store_address', 'store_address', 'store_name', 'store_code'],
+            output_fields=['store_address', 'store_address', 'store_name', 'store_code', 'region_name'],
             limit=10,  # 返回前10条数据
         )
+        vdb.close()
     else:
         collection_name='room_embeddings'
         vdb.load_collection(collection_name)
+        print(12312, buildRoomFilter(extJson))
         resp = vdb.search(
             collection_name=collection_name,
             data=vQuestions,
             anns_field="embedding",
             filter=buildRoomFilter(extJson),
-            output_fields=['room_unique_code', 'room_type_code', 'store_address', 'store_address', 'store_name', 'store_code', 'long_term_type_name'],
+            output_fields=[
+                'room_unique_code',
+                'room_type_code', 
+                'store_address', 
+                'store_address', 
+                'store_name', 
+                'store_code', 
+                'region_name', 
+                'long_term_type_name',
+                'area',
+                'price'
+            ],
             limit=10,  # 返回前10条数据
         )
-    vdb.close()
+        vdb.close()
     #尝试从向量数据库中排查数据
     return {
         'code': 200,
