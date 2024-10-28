@@ -8,13 +8,9 @@ WORKDIR /app
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 RUN pip config set global.timeout 6000
 RUN pip config set install.trusted-host mirrors.aliyun.com
-RUN pip install --no-cache-dir fastapi uvicorn
-RUN pip install --no-cache-dir pymysql
+RUN pip install --no-cache-dir fastapi uvicorn langchain_core langchain_ollama pymysql
+#RUN pip install --no-cache-dir pymilvus "pymilvus[model]"
 #RUN pip install --no-cache-dir sentence-transformers
-#RUN pip install --no-cache-dir pymilvus
-#RUN pip install --no-cache-dir "pymilvus[model]"
-# 将当前代码复制到容器
-#COPY ./ ./
 
 # 启动 FastAPI 服务
-#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4", "--reload"]
+#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--reload"]
