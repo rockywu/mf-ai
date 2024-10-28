@@ -55,7 +55,7 @@ def buildRoomFilter(params):
             #附近附近查询
             minArea = minArea - minArea/4
             maxArea = maxArea + maxArea/4
-        filters.append(f" area >= {minArea} && area <= {maxArea} ")
+        filters.append(f" area >= {int(minArea)} && area <= {int(maxArea)} ")
     return  " && ".join(filters) if len(filters) else None
     
     
@@ -90,8 +90,15 @@ async def recommended(question: Optional[str] = None):
     vQuestions =encode_queries(questions=[
         f"{extJson.get('origin')}",
     ])
-    print(len(vQuestions))
+    print(len(vQuestions), extJson)
     #type:1 查区域房源, type:2 查区域门店, type:3 查就近门店, type:4 查就近房源, type:5 未知类型
+    search_params = {
+        "metric_type": "L2", # 相似度度量方式，例如 L2、IP 或者 Cosine
+        "params": {
+            "nprobe":  200
+        }
+    }
+
     vdb = MilvusDatabase()
     if type == 2 or type == 3:
         #搜索门店
@@ -105,6 +112,7 @@ async def recommended(question: Optional[str] = None):
             filter=buildStoreFilter(extJson),
             output_fields=['store_address', 'store_address', 'store_name', 'store_code', 'region_name'],
             limit=10,  # 返回前10条数据
+            search_params=search_params
         )
         vdb.close()
     else:
@@ -129,6 +137,7 @@ async def recommended(question: Optional[str] = None):
                 'price'
             ],
             limit=10,  # 返回前10条数据
+            search_params=search_params
         )
         vdb.close()
     #尝试从向量数据库中排查数据
