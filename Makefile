@@ -1,2 +1,9 @@
-run:
-	pipenv run uvicorn main:app --host 0.0.0.0 --port 11803 --reload
+run: start
+
+start:
+	docker compose -f ./docker-compose.yml up -d --build
+
+stop:
+	docker compose -f ./docker-compose.yml down
+
+restart: stop run
