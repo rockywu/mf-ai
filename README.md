@@ -12,6 +12,8 @@
 * [MilvusDb](https://milvus.io/) 高性能矢量数据库
 * [Qwen2.5](https://github.com/QwenLM/Qwen2.5) QWen2.5
 * [Python](https://www.python.org/) Python 开发语言
+* [sentence-transformers](https://sbert.net/) transformers实现
+* [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) 句子转换器模型
 
 
 ### 启动
