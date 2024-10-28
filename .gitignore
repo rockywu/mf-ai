@@ -1,9 +1,10 @@
-/node_modules
-/npm-debug.log*
-/yarn-error.log
-/package-lock.json
 /.idea
 /logs/*.log
 **/__pycache__/
 __pycache__/
 .DS_Store
+/data/*
+!/data/.gitkeep
+*.bak
+.DS_Store
+

@@ -9,8 +9,8 @@ RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 RUN pip config set global.timeout 6000
 RUN pip config set install.trusted-host mirrors.aliyun.com
 RUN pip install --no-cache-dir fastapi uvicorn
+RUN pip install --no-cache-dir pymysql
 #RUN pip install --no-cache-dir sentence-transformers
-#RUN pip install --no-cache-dir pymysql
 #RUN pip install --no-cache-dir pymilvus
 #RUN pip install --no-cache-dir "pymilvus[model]"
 # 将当前代码复制到容器

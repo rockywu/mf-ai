@@ -19,7 +19,7 @@ app.add_middleware(
 
 @app.get("/")
 def hello():
-    return {"message": "欢迎来到魔方AI推荐1"}
+    return {"message": "欢迎来到魔方AI推荐2"}
 @app.get("/api/recommended")
 async def recommended():
     return {"message": "欢迎来到魔方AI推荐2"}
