@@ -14,8 +14,12 @@ services:
       dockerfile: Dockerfile # 可选，明确指定 Dockerfile 名称，如果使用默认名称可省略
     image: mf-ai:last
     container_name: mf_ai_api
+    depends_on:
+      - mf-ollama
+    networks:
+      - ai_cluster_net
     ports:
-      - "11080:8000" # 将容器的 8000 端口映射到主机的 8000 端口
+      - 11080:8000 # 将容器的 8000 端口映射到主机的 8000 端口
     volumes:
       - ../api:/app # 将本地的 app 目录挂载到容器的 /app 目录
     healthcheck:
@@ -25,10 +29,23 @@ services:
       retries: 3
       start_period: 90s
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload # 启动命令
+
+  mf-ollama:
+    image: ollama/ollama
+    container_name: mf_ai_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ../data/ollama:/root/.ollama
+    networks:
+      - ai_cluster_net
+    restart: always
   
   open-webui:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/open-webui/open-webui:main
     container_name: mf_ai_open_webui
+    depends_on:
+      - mf-ollama
     networks:
       - ai_cluster_net
     ports:
