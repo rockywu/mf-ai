@@ -22,7 +22,7 @@ git_reset:
 	git reset --hard origin/master
 
 init_projects:
-	cd ./mf-chat/ && cd ./mf-chat/ && npm config set registry https://registry.npmmirror.com && npx yarn install && npx yarn install
+	cd ./mf-chat/ && npm config set registry https://registry.npmmirror.com && npx yarn install && npx yarn install
 
 build_chat: init_projects
 	cd ./mf-chat/ && npm run build
