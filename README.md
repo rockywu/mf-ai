@@ -11,7 +11,7 @@
 * [Docker](https://www.docker.com/) Docker容器
 * [Ollama](https://ollama.com/) LLM快速搭建工具
 * [MilvusDb](https://milvus.io/) 高性能矢量数据库  [桌面工具下载](https://github.com/zilliztech/attu)
-* [Qwen2.5](https://github.com/QwenLM/Qwen2.5) QWen2.5
+* [Qwen2.5](https://github.com/QwenLM/Qwen2.5) QWen2.5 阿里千问大模型
 * [Python](https://www.python.org/) Python 开发语言
 * [sentence-transformers](https://sbert.net/) transformers实现
 * [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) 句子转换器模型
