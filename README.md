@@ -47,5 +47,6 @@ cd mf-ai
 ### 访问服务
 
 * **Api** [http://localhost:11080](http://localhost:11080) 魔方推荐API服务
-*  **OpenWebUi** [http://localhost:11081](http://localhost:11081)  管理和操作各种web 应用程序和服务
-*  **MilvusDb** [http://localhost:11083](http://localhost:11083)  账号：root  密码：52MfAi
+* **OpenWebUi** [http://localhost:11081](http://localhost:11081)  管理和操作各种web 应用程序和服务
+* **OllamaApi** [http://localhost:11082](http://localhost:11082)  Ollama api地址
+* **MilvusDb** [http://localhost:11083](http://localhost:11083)  账号：root  密码：52MfAi
