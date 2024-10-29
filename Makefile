@@ -22,7 +22,7 @@ git_reset:
 	git reset --hard origin/master
 
 init_projects:
-	cd ./mf-chat/ && yarn install
+	cd ./mf-chat/ && npx yarn install
 
 build_chat: init_projects
 	cd ./mf-chat/ && npm run build
