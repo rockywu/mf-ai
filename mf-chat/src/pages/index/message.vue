@@ -72,7 +72,7 @@ export default {
       this.loading = true;
       try {
         const res = await request({
-          url: `http://172.21.49.98:11803/api/recommended?question=${question}`
+          url: `/api/customer?q=${question}`
         })
         this.loading = false;
         if (res.statusCode === 200 && res.data.code === 200) {

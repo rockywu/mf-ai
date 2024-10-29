@@ -8,6 +8,22 @@ networks:
     driver: bridge
 
 services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: mf_ai_nginx
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - 11400:80
+    volumes:
+      - './nginx/conf.d:/etc/nginx/conf.d'
+      - './nginx/nginx.conf:/etc/nginx/nginx.conf'
+      - '../mf-chat/dist/build:/www/web'
+    networks:
+      - ai_cluster_net
+
   api:
     build:
       context: ./ # 指定 Dockerfile 的目录
@@ -83,3 +99,4 @@ services:
       retries: 3
       start_period: 90s
     command: ["milvus", "run", "standalone"]
+

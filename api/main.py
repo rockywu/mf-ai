@@ -43,7 +43,7 @@ def healthz():
 def healthz():
     return Response(content="OK", media_type="text/plain")
 
-@app.get("/api")
+@app.get("/api/customer")
 def api():
     answer = ask_question_with_ollama(template=template, params={"question": '我叫什么名字', 'context': '我叫吴佳雷'}, model=ollamaModel)
     return {"answer": answer}
