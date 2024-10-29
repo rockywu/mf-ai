@@ -7,5 +7,4 @@ __pycache__/
 !/data/.gitkeep
 *.bak
 .DS_Store
-api/config.ini
 

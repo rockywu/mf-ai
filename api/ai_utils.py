@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import configparser
 config = configparser.ConfigParser()
+#该配置请在docker/api.ini中修改
 config.read("config.ini")
 def getConfig(key_path):
     section, key = key_path.split(".")

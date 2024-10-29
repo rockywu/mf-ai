@@ -9,8 +9,8 @@ RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 RUN pip config set global.timeout 6000
 RUN pip config set install.trusted-host mirrors.aliyun.com
 RUN pip install fastapi uvicorn langchain_core langchain_ollama pymysql configparser
-#RUN pip install pymilvus "pymilvus[model]"
-#RUN pip install sentence-transformers
+RUN pip install pymilvus "pymilvus[model]"
+RUN pip install sentence-transformers
 
 # 启动 FastAPI 服务
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--reload"]

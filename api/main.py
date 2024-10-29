@@ -3,6 +3,7 @@ from starlette.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from ai_utils import getConfig
 from ai_ollama import ask_question_with_ollama
+from typing import Optional
 
 app = FastAPI()
 # 配置允许的来源
@@ -44,7 +45,8 @@ def healthz():
     return Response(content="OK", media_type="text/plain")
 
 @app.get("/api/customer")
-def api():
+def apiCustomer(q: Optional[str] = None):
+    #  get_context_prompt(question)
     answer = ask_question_with_ollama(template=template, params={"question": '我叫什么名字', 'context': '我叫吴佳雷'}, model=ollamaModel)
     return {"answer": answer}
 
