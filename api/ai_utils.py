@@ -25,3 +25,16 @@ def xml_to_json(xml_str):
     # 转换为 JSON 对象
     return json_data
 
+def filter_none_recursive(data):
+    """
+    递归过滤掉字典中值为 None 的键值对。
+    
+    :param data: 输入的字典
+    :return: 过滤后的字典
+    """
+    if isinstance(data, dict):
+        return {k: filter_none_recursive(v) for k, v in data.items() if v is not None}
+    elif isinstance(data, list):
+        return [filter_none_recursive(item) for item in data if item is not None]
+    else:
+        return data
