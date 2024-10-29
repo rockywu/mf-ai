@@ -1,27 +1,17 @@
-# ollama连接器
-import requests
-import json
-class AiOllamaClassifier:
-    def __init__(self, api_url = "http://home.wujialei.com:11434/api/generate", model="qwen2.5:14b"):
-        self.api_url = api_url
-        self.model = model
-        self.headers = {
-            "Content-Type": "application/json"
-        }
-    
-    def classify_question_type(self, prompt):
-        data = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False
-        }
-        
-        response = requests.post(self.api_url, headers=self.headers, data=json.dumps(data))
-        
-        if response.status_code == 200:
-            result = response.json()
-            response_text = result.get('response')
-            return response_text.strip()
-        else:
-            print("Error:", response.status_code, response.text)
-            return None
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama.llms import OllamaLLM
+from ai_utils import getConfig
+
+ollamaUrl = getConfig("ollama.url")
+ollamaModel = getConfig('ollama.model')
+def ask_question_with_ollama(template:str, params, model = ollamaModel):
+     # 创建 ChatPromptTemplate 实例
+    prompt = ChatPromptTemplate.from_template(template)
+    # 使用本地部署的 llama3.1 模型
+    model = OllamaLLM(model=model, base_url=ollamaUrl)
+    # 创建链，定义数据流
+    chain = prompt | model
+    # 执行链，传递实际提问
+    result = chain.invoke(params)
+    # 返回模型生成的回答
+    return result

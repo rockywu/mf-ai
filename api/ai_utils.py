@@ -1,4 +1,11 @@
 import xml.etree.ElementTree as ET
+import configparser
+config = configparser.ConfigParser()
+config.read("config.ini")
+def getConfig(key_path):
+    section, key = key_path.split(".")
+    return config.get(section, key)
+
 def xml_to_json(xml_str):
     # 解析 XML 字符串
     root = ET.fromstring(xml_str)
@@ -16,3 +23,4 @@ def xml_to_json(xml_str):
     
     # 转换为 JSON 对象
     return json_data
+
