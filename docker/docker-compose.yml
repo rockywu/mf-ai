@@ -34,8 +34,8 @@ services:
       - mf-ollama
     networks:
       - ai_cluster_net
-    #ports:
-    #  - 11401:8000 # 将容器的 8000 端口映射到主机的 8000 端口
+    ports:
+      - 11401:8000 # 将容器的 8000 端口映射到主机的 8000 端口
     volumes:
       - ../api:/app # 将本地的 app 目录挂载到容器的 /app 目录
       - ./api.ini:/app/config.ini # 配置api运行环境
@@ -57,6 +57,8 @@ services:
     ports:
       - 11402:8080
     restart: always
+    environment:
+      - OLLAMA_BASE_URL=http://mf_ai_ollama:11434
     volumes:
       - ../data/open-webui:/app/backend/data
   
@@ -87,16 +89,16 @@ services:
       - ../docker/milvusDB/user.yaml:/milvus/configs/user.yaml
     networks:
       - ai_cluster_net
-    ports:
-      - "11404:19530"
-      - "11405:9091"
-      #- "11406:2379"
+    #ports:
+    #  - "11404:19530"
+    #  - "11405:9091"
+    #  - "11406:2379"
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11405/healthz"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://localhost:11405/healthz"]
+    #  interval: 10s
+    #  timeout: 10s
+    #  retries: 3
+    #  start_period: 30s
     command: ["milvus", "run", "standalone"]
 
