@@ -8,6 +8,7 @@
 
 > 安装与使用请自行查阅
 
+* [Docker](https://www.docker.com/) Docker容器
 * [Ollama](https://ollama.com/) LLM快速搭建工具
 * [MilvusDb](https://milvus.io/) 高性能矢量数据库
 * [Qwen2.5](https://github.com/QwenLM/Qwen2.5) QWen2.5
@@ -18,8 +19,14 @@
 
 ### 启动
 
-> 本项目使用Docker构建环境
+> 本项目使用Docker构建环境，启动命令，请点击此链接[Docker](https://www.docker.com/)下载安装
 
-```
-docker compose -f ./docker/docker-compose.yml up -d --build
-```
+* 1、仓库下载： `git@github.com:rockywu/mf-ai.git`
+* 2、`cd mf-ai`
+*  3、启动运行： `make start ` 或者 `docker compose -f ./docker/docker-compose.yml up -d --build`
+
+
+### 访问服务
+
+* [http://localhost:11080](http://localhost:11080) api访问地址
+*  []
