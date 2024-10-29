@@ -20,6 +20,9 @@ app.add_middleware(
 )
 
 ollamaModel = getConfig('ollama.model')
+ollamaUrl = getConfig('ollama.url')
+
+print(ollamaUrl, 'ollamaModel', ollamaModel)
 
 # 定义模板
 template = """
