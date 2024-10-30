@@ -29,7 +29,7 @@
 git clone https://github.com/rockywu/mf-ai.git
 # 进入目录
 cd mf-ai
-# 运行启动(如果不支持MakeFile可以使用2启动
+# 运行启动(如果不支持MakeFile可以使用2启动)
 启动方式1:  make start 
 启动方式2:  docker compose -f ./docker/docker-compose.yml up -d --build
 # 手动下载所需模型
@@ -46,7 +46,7 @@ cd mf-ai
 
 ### 访问服务
 
-* **Api** [http://localhost:11080](http://localhost:11080) 魔方推荐API服务
-* **OpenWebUi** [http://localhost:11081](http://localhost:11081)  管理和操作各种web 应用程序和服务
-* **OllamaApi** [http://localhost:11082](http://localhost:11082)  Ollama api地址
-* **MilvusDb** [http://localhost:11083](http://localhost:11083)  账号：root  密码：52MfAi
+* **Api** [http://localhost:11400](http://localhost:11400) 魔方推荐API服务
+* **OpenWebUi** [http://localhost:11402](http://localhost:11402)  管理和操作各种web 应用程序和服务
+* **OllamaApi** [http://localhost:11403](http://localhost:11403)  Ollama api地址
+* **MilvusDb** [http://localhost:11404](http://localhost:11404)  账号：root  密码：52MfAi

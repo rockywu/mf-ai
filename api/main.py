@@ -142,7 +142,7 @@ def apiCustomer(q: Optional[str] = None):
             'question': q,
             "response": (f"""
                 {unknowParams.get('content_title', '')}
-                {unknowParams.get('content_desc', '')}
+                {unknowParams.get('content_desc_unknow', '您的提问我还无法理解，请您重新询问')}
                 {unknowParams.get('content_note', '')}
             """)
         }

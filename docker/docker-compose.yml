@@ -64,8 +64,8 @@ services:
   mf-ollama:
     image: ollama/ollama
     container_name: mf_ai_ollama
-    #ports:
-    #  - "11403:11434"
+    ports:
+      - "11403:11434"
     volumes:
       - ../data/ollama:/root/.ollama
     networks:
@@ -88,16 +88,16 @@ services:
       - ../docker/milvusDB/user.yaml:/milvus/configs/user.yaml
     networks:
       - ai_cluster_net
-    #ports:
-    #  - "11404:19530"
-    #  - "11405:9091"
-    #  - "11406:2379"
+    ports:
+      - "11404:19530"
+      - "11405:9091"
+      - "11406:2379"
     restart: always
-    #healthcheck:
-    #  test: ["CMD", "curl", "-f", "http://localhost:11405/healthz"]
-    #  interval: 10s
-    #  timeout: 10s
-    #  retries: 3
-    #  start_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11405/healthz"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     command: ["milvus", "run", "standalone"]
 
