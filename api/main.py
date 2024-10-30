@@ -2,9 +2,9 @@ from fastapi import FastAPI, HTTPException
 from starlette.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from ai_utils import getConfig, filter_none_recursive
-from ai_ollama import ask_question_with_ollama_toJson
+from ai_ollama import ask_question_with_ollama_toJson, ask_question_with_ollama
 from typing import Optional
-from prompt_template import get_search_params_tpl, get_unknow_tpl
+from prompt_template import get_search_params_tpl, get_unknow_tpl, get_filter_list
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
 
@@ -33,6 +33,7 @@ def buildRoomFilter(params):
     maxPirce = to_int(params['price_max'])
     minArea = to_int(params['area_min'])
     maxArea = to_int(params['area_max'])
+    origin = params.get('origin')
     filters = []
     if minPrice >= 0 and maxPirce >= 0:
         if minPrice == maxPirce:
@@ -46,6 +47,8 @@ def buildRoomFilter(params):
             minArea = minArea - minArea/4
             maxArea = maxArea + maxArea/4
         filters.append(f" area >= {int(minArea)} && area <= {int(maxArea)} ")
+    if origin is not None:
+        filters.append(f' region_name like "{origin}" ')
     return  " && ".join(filters) if len(filters) else None
 
 
@@ -74,6 +77,26 @@ def healthz():
 @app.get("/healthz")
 def healthz():
     return Response(content="OK", media_type="text/plain")
+
+@app.get('/api/split')
+def apiCustomer(q: Optional[str] = None):
+    tpl="""
+        ;; 用途: 将一个用户提问，提取出关键信息
+        从以下文本中提取关键字信息，包括价格(price)、面积(area)、地址(address)和地铁站(subway)：
+        提问: {question}
+        请按以下XML格式输出提取的信息：
+        (<response>
+            <price>价格数值或“无”</price>
+            <area>面积大小和单位或“无”</area>
+            <address>地址或“无”</address>
+            <subway>地铁站名称或“无”</subway>
+        </response>)
+        在返回结果过滤掉非xml结构,只返回xml内容并且保证改xml可以被解析, 将xml中未提供或者未匹配的信息字段变为空值.
+    """
+    answer = ask_question_with_ollama(template=tpl, params={'question' : q})
+    return Response(content=answer, media_type="text/plain")
+    
+
 
 @app.get("/api/customer")
 def apiCustomer(q: Optional[str] = None):
@@ -130,10 +153,11 @@ def apiCustomer(q: Optional[str] = None):
             anns_field="embedding",
             filter=buildStoreFilter(params),
             output_fields=['store_address', 'store_address', 'store_name', 'store_code', 'region_name'],
-            limit=10,  # 返回前10条数据
+            limit=50,  # 返回前10条数据
             search_params=search_params
         )
         vdb.close()
+
     else:
         unknowParams = ask_question_with_ollama_toJson(template=get_unknow_tpl, params={'question': q}, model=ollamaModel)
         return {
