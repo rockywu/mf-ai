@@ -26,7 +26,7 @@
 
 ```
 # 下载仓库
-git clone git@github.com:rockywu/mf-ai.git
+git clone https://github.com/rockywu/mf-ai.git
 # 进入目录
 cd mf-ai
 # 运行启动(如果不支持MakeFile可以使用2启动
