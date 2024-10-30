@@ -34,7 +34,7 @@ cd mf-ai
 启动方式2:  docker compose -f ./docker/docker-compose.yml up -d --build
 # 手动下载所需模型
 下载方式1：make pullQwen2.5
-下载方式2：docker exec -it $$(docker container ls |grep mf_ai_ollama | awk '{print $$1}') ollama run qwen2.5:0.5b
+下载方式2：docker exec -it mf_ai_ollama ollama run qwen2.5:0.5b
 下载方式3：参考网页下载模型
 ```
 
