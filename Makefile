@@ -14,7 +14,7 @@ api_log:
 pullQwen2.5:
 	docker exec -it mf_ai_ollama ollama run qwen2.5:0.5b
 
-dev_chat: init_projects
+dev_chat: 
 	cd ./mf-chat/ && npm run serve
 	
 git_reset:
@@ -24,7 +24,7 @@ git_reset:
 init_projects:
 	cd ./mf-chat/ && npm config set registry https://registry.npmmirror.com && npx yarn install && npx yarn install
 
-build_chat: init_projects
+build_chat: 
 	cd ./mf-chat/ && npm run build
 
 update: git_reset

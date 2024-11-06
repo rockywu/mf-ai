@@ -1,115 +1,159 @@
 <template>
-  <view class="page">
-    <scroll-view class="scroll-view" scroll-y scroll-with-animation :scroll-top="top">
-      <view style="padding: 30rpx 30rpx 240rpx;">
-        <view class="message" :class="[item.userType]" v-for="(item, index) in list" :key="index">
-          <image src="../../static/mf-logo.png" v-if="item.userType === 'friend'" class="avatar" mode="widthFix">
-          </image>
-          <view class="content" v-if="item.messageType === 'room'">
-            <div class="links" v-if="item.content && item.content.length > 0">
-              <div>房源推荐：</div>
-              <a :href="row.link" v-for="(row, i) in buildRespRoomTypesCard(item.content)" :key="i">{{row.name}}</a>
-            </div>
-            <div v-else>暂无房源</div>
+    <view class="page">
+      <scroll-view class="scroll-view" scroll-y scroll-with-animation :scroll-top="top">
+        <view style="padding: 30rpx 30rpx 240rpx;">
+          <view class="message" :class="[item.userType]" v-for="(item, index) in list" :key="index">
+            <image src="../../static/mf-logo.png" v-if="item.userType === 'mfai'" class="avatar" mode="widthFix">
+            </image>
+            <image src="../../static/retry.png" class="retry" v-if="item.userType === 'self'"
+              @click="retry(item.content)" />
+            <view class="content" v-if="item.messageType === 'room'">
+              <div class="links" v-if="item.content && item.content.length > 0">
+                <div>房源推荐：</div>
+                <a :href="row.link" v-for="(row, i) in buildRespRoomTypesCard(item.content)" :key="i">{{ row.name }}</a>
+              </div>
+              <div v-else>暂无房源</div>
+            </view>
+            <view class="content" v-else-if="item.messageType === 'store'">
+              <div class="links" v-if="item.content && item.content.length > 0">
+                <div>门店推荐：</div>
+                <a :href="row.link" v-for="(row, i) in buildRespStoresCard(item.content)" :key="i">{{ row.name }}</a>
+              </div>
+              <div v-else>暂无门店</div>
+            </view>
+            <text class="content" v-else>
+              {{ item.content }}
+            </text>
+            <image src="../../static//user-logo.png" v-if="item.userType === 'self'" class="avatar" mode="widthFix">
+            </image>
           </view>
-          <view class="content" v-else-if="item.messageType === 'store'">
-            <div class="links" v-if="item.content && item.content.length > 0">
-              <div>门店推荐：</div>
-              <a :href="row.link" v-for="(row, i) in buildRespStoresCard(item.content)" :key="i">{{row.name}}</a>
-            </div>
-            <div v-else>暂无门店</div>
-          </view>
-          <text class="content" v-else>
-            {{ item.content.trim() }}
-          </text>
-          <image src="../../static//user-logo.png" v-if="item.userType === 'self'" class="avatar" mode="widthFix">
-          </image>
         </view>
+      </scroll-view>
+      <view class="tool">
+        <input type="text" placeholder="填写找房需求" v-model="content" class="input" @confirm="() => send(content)" />
+        <!-- <image src="../../static/thumb.png" mode="widthFix" class="thumb" @click="chooseImage"></image> -->
+        <image src="../../static/i-send.png" mode="widthFix" class="thumb" @click="() => send(content)"></image>
       </view>
-    </scroll-view>
-    <view class="tool">
-      <input type="text" placeholder="填写找房需求" v-model="content" class="input" @confirm="send" />
-      <!-- <image src="../../static/thumb.png" mode="widthFix" class="thumb" @click="chooseImage"></image> -->
-      <image src="../../static/i-send.png" mode="widthFix" class="thumb" @click="send"></image>
+      <view class="fix-clean" @click="init(true)">
+        <image src="../../static/clean.png" mode="widthFix" class="fix-clean-img"/>
+      </view>
     </view>
-  </view>
 </template>
 
 <script>
-import { Storage, request } from '../../utils'
+import { Storage, request, generateUUID } from '../../utils'
 
-const storage = new Storage('mf-content')
+const sContent = new Storage('mf-content')
+const sUuid = new Storage('mf-uuid')
 export default {
   data() {
     return {
       loading: false,
       content: '',
       list: [],
-      top: 0
+      top: 0,
+      y: 0,
     };
   },
-  onLoad(options) {
-    // uni.setNavigationBarTitle({
-    //   title: options.name
-    // })
-    this._friendAvatar = ''
-    this._selfAvatar = ''
-    this.list = [
-      {
-        content: '对方历史回复消息',
-        userType: 'friend',
-        avatar: this._friendAvatar
-      },
-      {
-        content: '历史消息',
-        userType: 'self',
-        avatar: this._selfAvatar
-      }
-    ]
+  onLoad() {
+    this.init();
   },
   methods: {
+    onChange: function (e) {
+      this.old.x = e.detail.x
+      this.old.y = e.detail.y
+    },
+    clear() {
+      this.init(true)
+    },
+    init(force = false) {
+      let uuid = sUuid.get();
+      if (!uuid) {
+        sUuid.set(generateUUID())
+      }
+      let contents = sContent.get();
+      if (!contents || !contents?.length || force) {
+        sContent.set([
+          {
+            content: `您好，我是魔方智选小助手。
+          请描述您的租房需求，我将会为您精准推荐！`,
+            userType: 'mfai',
+          }
+        ])
+      }
+      contents = sContent.get();
+      this.list = contents
+    },
     async reqQuestion(question) {
       this.loading = true;
       try {
         const res = await request({
-          url: `/api/customer?q=${question}`
+          url: `/api/customer`,
+          method: 'post',
+          data: {
+            question
+          }
         })
         this.loading = false;
         if (res.statusCode === 200 && res.data.code === 200) {
           return res.data
         }
-        return res;
+        return null
+        // return res;
       } catch (e) {
         this.loading = false;
       }
     },
-    send() {
+    addMessage({ content, userType, messageType, retry = false }) {
+      this.list.push({
+        messageType,
+        content,
+        userType,
+      })
+      sContent.set(this.list.slice(0))
+    },
+    retry(content) {
+      this.content = content;
+    },
+    send(content) {
       if (this.loading) return;
-      if (!this.content) {
+      if (!content) {
         uni.showToast({ icon: 'none', title: '填写您的找房需求' })
         return
       }
-      this.list.push({
-        content: this.content,
-        userType: 'self',
-        avatar: this._selfAvatar
-      })
+      //index >= 0 //代表需要重新操作
+      this.content = '';
       const messageTypes = {
         t_1: 'room',
         t_2: 'store',
-        t_3: 'store',
-        t_4: 'room',
-        t_5: 'text'
       }
-      uni.showLoading({title: '...'});
-      this.reqQuestion(this.content).then(res => {
+      uni.showLoading({ title: '...' });
+      const questions = this.list.filter(v => {
+        return v.userType === 'self'
+      }).reverse().map(v => v.content)
+      questions.unshift(content)
+      const qs = new Set(questions)
+      this.reqQuestion(Array.from(qs)).then(res => {
+        uni.hideLoading()
+        this.addMessage({
+          content: content,
+          userType: 'self',
+          messageType: null,
+        })
+        if (!res) {
+          this.addMessage({
+            content: '网络异常，请重试',
+            userType: 'mfai',
+            messageType: null,
+          })
+          return;
+        }
         const messageType = messageTypes[`t_${res.type}`] || 'text';
         const rows = res && res.response && res.response.length > 0 ? res.response : [];
-        this.pushMsg({
+        this.addMessage({
           messageType: messageType,
-          content: messageType === 5 ? res.response : rows,
-          userType: 'friend',
-          avatar: this._friendAvatar
+          content: [1, 2].includes(messageType) ? rows : res.response,
+          userType: 'mfai',
         })
         uni.hideLoading();
         this.scrollToBottom()
@@ -119,7 +163,7 @@ export default {
         this.pushMsg({
           messageType: 5,
           content: '未找到相关信息',
-          userType: 'friend',
+          userType: 'mfai',
         })
       })
       this.content = ''
@@ -167,8 +211,8 @@ export default {
     //       setTimeout(() => {
     //         this.list.push({
     //           content: '风景好漂亮啊~',
-    //           userType: 'friend',
-    //           avatar: this._friendAvatar
+    //           userType: 'mfai',
+    //           avatar: this._mfaiAvatar
     //         })
     //         this.scrollToBottom()
     //       }, 1500)
@@ -183,6 +227,19 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.fix-clean {
+  z-index: 999;
+  position: fixed;
+  font-weight: 800;
+  top: 24rpx;
+  left: 24rpx;
+  .fix-clean-img {
+    display: block;
+    width: 44rpx;
+    height: 44rpx;
+  }
+}
+
 .scroll-view {
   /* #ifdef H5 */
   height: calc(100vh - 44px);
@@ -205,9 +262,11 @@ export default {
     border-radius: 10rpx;
     margin-right: 30rpx;
   }
+
   .links {
     display: flex;
     flex-direction: column;
+
     a {
       color: #8080f3;
       display: block;
@@ -252,7 +311,7 @@ export default {
     }
   }
 
-  &.friend {
+  &.mfai {
     .content {
       position: relative;
 
@@ -298,5 +357,13 @@ export default {
   .thumb {
     width: 64rpx;
   }
+}
+
+.retry {
+  display: block;
+  margin-right: 20rpx;
+  margin-top: 20rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 </style>

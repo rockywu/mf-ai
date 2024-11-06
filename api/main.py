@@ -1,9 +1,11 @@
+import random
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from starlette.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from ai_utils import getConfig, filter_none_recursive
 from ai_ollama import ask_question_with_ollama_toJson, ask_question_with_ollama
-from typing import Optional
+from typing import Optional, List
 from prompt_template import get_search_params_tpl, get_unknow_tpl, get_filter_list
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
@@ -71,40 +73,26 @@ template = """
 ## 健康检查
 @app.get("/")
 def healthz():
-    return {"status": "ok", "code": 200}
+    return {"status": "ok", "code": 200,  "ollama": {
+        "ollamaUrl": ollamaUrl,
+        "ollamaModel": ollamaModel
+    }}
 
 ## 健康检查
 @app.get("/healthz")
 def healthz():
     return Response(content="OK", media_type="text/plain")
+class QList(BaseModel):
+    question: List[str]  # 字符串数组
 
-@app.get('/api/split')
-def apiCustomer(q: Optional[str] = None):
-    tpl="""
-        ;; 用途: 将一个用户提问，提取出关键信息
-        从以下文本中提取关键字信息，包括价格(price)、面积(area)、地址(address)和地铁站(subway)：
-        提问: {question}
-        请按以下XML格式输出提取的信息：
-        (<response>
-            <price>价格数值或“无”</price>
-            <area>面积大小和单位或“无”</area>
-            <address>地址或“无”</address>
-            <subway>地铁站名称或“无”</subway>
-        </response>)
-        在返回结果过滤掉非xml结构,只返回xml内容并且保证改xml可以被解析, 将xml中未提供或者未匹配的信息字段变为空值.
-    """
-    answer = ask_question_with_ollama(template=tpl, params={'question' : q})
-    return Response(content=answer, media_type="text/plain")
-    
-
-
-@app.get("/api/customer")
-def apiCustomer(q: Optional[str] = None):
+@app.post("/api/customer")
+async def apiCustomer(body: QList):
+    q = body.question
     params = ask_question_with_ollama_toJson(template=get_search_params_tpl, params={"question": q}, model=ollamaModel)
     # 将无法解析的数据丢弃掉
     analyzes = filter_none_recursive(params)
     print('params', analyzes)
-    #0-未知类型、1-查房源、2-查门店
+    #0-未知类型、1-查房源、2-查门店、3-人工
     vdb = MilvusDatabase()
     vQuestionsArr = []
     for item in ['stroe_name', 'city', 'address', 'origin', 'location', 'decoration']:
@@ -119,6 +107,9 @@ def apiCustomer(q: Optional[str] = None):
         }
     }
     if type == 1: 
+        if len(vQuestionsArr) < 1:
+            return searchRoomPromptDetails()
+
         collection_name='room_embeddings'
         vdb.load_collection(collection_name)
         vQuestions =encode_queries(questions=vQuestionsArr)
@@ -144,6 +135,9 @@ def apiCustomer(q: Optional[str] = None):
         )
         vdb.close()
     elif type == 2:
+        if len(vQuestionsArr) < 1:
+            return searchStorePromptDetails()
+
         vQuestions =encode_queries(questions=vQuestionsArr)
         collection_name='stores_embeddings'
         vdb.load_collection(collection_name)
@@ -158,18 +152,18 @@ def apiCustomer(q: Optional[str] = None):
         )
         vdb.close()
 
-    else:
-        unknowParams = ask_question_with_ollama_toJson(template=get_unknow_tpl, params={'question': q}, model=ollamaModel)
+    elif type == 3:
+        No = random.randrange(1000, 10000)
         return {
-            'code': 200,
-            'type': type,
-            'question': q,
-            "response": (f"""
-                {unknowParams.get('content_title', '')}
-                {unknowParams.get('content_desc_unknow', '您的提问我还无法理解，请您重新询问')}
-                {unknowParams.get('content_note', '')}
-            """)
-        }
+        'code': 200,
+        'type': 3,
+        'response': f"人工客服：{No} \n 很高兴为您服务"
+    }
+
+    else:
+        # unknowParams = ask_question_with_ollama_toJson(template=get_unknow_tpl, params={'question': q}, model=ollamaModel)
+        return searchRoomPromptDetails()
+        
        
     #尝试从向量数据库中排查数据
     return {
@@ -178,4 +172,19 @@ def apiCustomer(q: Optional[str] = None):
         'question': q, 
         'extJson': params, 
         'response': resp[0] if resp[0] else []
+    }
+
+    
+def searchRoomPromptDetails(): 
+    return {
+        'code': 200,
+        'type': 0,
+        'response': "请说出你详细的找房需求"
+    }
+
+def searchStorePromptDetails(): 
+    return {
+        'code': 200,
+        'type': 0,
+        'response': "请说出你想找哪里的门店"
     }

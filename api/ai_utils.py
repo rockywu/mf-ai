@@ -1,11 +1,28 @@
+import os
 import xml.etree.ElementTree as ET
 import configparser
 config = configparser.ConfigParser()
 #该配置请在docker/api.ini中修改
+localConfig = configparser.ConfigParser()
+# 读取默认的 config.ini
 config.read("config.ini")
+
+# 检查 .env.config.ini 是否存在，存在则读取
+if os.path.isfile(".env.config.ini"):
+    localConfig.read(".env.config.ini")
+else:
+    # 如果 .env.config.ini 不存在，则让 localConfig 为空，之后不会从它读取值
+    localConfig = None
+
+# 定义获取配置的函数
 def getConfig(key_path):
     section, key = key_path.split(".")
-    return config.get(section, key)
+    # 如果 localConfig 存在并且参数在 localConfig中，优先使用 localConfig
+    if localConfig and localConfig.has_option(section, key):
+        return localConfig.get(section, key)
+    # 若不存在或 localConfig 未加载，使用 config.ini 中的配置
+    if config.has_option(section, key):
+        return config.get(section, key)
 
 def xml_to_json(xml_str):
     # 解析 XML 字符串
