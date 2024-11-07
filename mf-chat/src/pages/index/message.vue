@@ -183,16 +183,16 @@ export default {
     buildRespStoresCard(rows) {
       return rows.map(v => {
         return {
-          link: this.buildStoreLink(v.entity.store_code),
-          name: `${v.entity.store_name}(${v.entity.store_address})`
+          link: this.buildStoreLink(v.store_code),
+          name: `${v.store_name}(${v.store_address})`
         }
       })
     },
     buildRespRoomTypesCard(rows) {
       return rows.map(v => {
         return {
-          link: this.buildRoomTypeLink(v.entity.room_type_code),
-          name: `${v.entity.region_name}${v.entity.store_name}-${v.entity.long_term_type_name || '-'}(价格:${v.entity.price}元/面积：${v.entity.area})`
+          link: this.buildRoomTypeLink(v.room_type_code),
+          name: `${v.region_name}${v.store_name}-${v.long_term_type_name || '-'}(价格:${v.price}元/面积：${v.area})`
         }
       })
     },

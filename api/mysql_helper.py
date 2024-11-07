@@ -1,7 +1,7 @@
 import pymysql
 from db_connection import MySQLConnectionSingleton
 
-def query_mysql(query):
+def query_mysql(query, args=None):
     """
     使用单例数据库连接执行给定的 SQL 查询并返回结果。
 
@@ -24,7 +24,7 @@ def query_mysql(query):
         cursor = db_connection.cursor()
 
         # 执行查询
-        cursor.execute(query)
+        cursor.execute(query, args)
 
         # 获取所有查询结果
         results = cursor.fetchall()

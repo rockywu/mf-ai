@@ -33,6 +33,7 @@ services:
     restart: always
     depends_on:
       - mf-ollama
+      - mf-mysql
     networks:
       - ai_cluster_net
     ports:
@@ -46,6 +47,26 @@ services:
       retries: 3
       start_period: 90s
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload # 启动命令
+
+  mf-mysql:
+    image: mysql:8
+    container_name: mf_ai_mysql
+    #command: --sql_mode="" --init-connect='SET NAMES utf8mb4;' --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - ai_cluster_net
+    ports:
+      - 11406:3306
+    restart: always
+    volumes:
+      - '../data/mysql:/var/lib/mysql'
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: RwHome!0427
+      MYSQL_USER: rwhome
+      MYSQL_PASSWORD: RwHome!9999
 
   open-webui:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/ghcr.io/open-webui/open-webui:main
@@ -91,14 +112,14 @@ services:
       - ai_cluster_net
     ports:
       - "11404:19530"
-      - "11405:9091"
-      - "11406:2379"
+      #- "11405:9091"
+      #- "11406:2379"
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11405/healthz"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://mf_ai_ollama:11405/healthz"]
+    #  interval: 10s
+    #  timeout: 10s
+    #  retries: 3
+    #  start_period: 30s
     command: ["milvus", "run", "standalone"]
 

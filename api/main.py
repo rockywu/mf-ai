@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from ai_utils import getConfig, filter_none_recursive
 from ai_ollama import ask_question_with_ollama_toJson, ask_question_with_ollama
 from typing import Optional, List
+from sql.stores import findStores
+from sql.rooms import findRooms
 from prompt_template import get_search_params_tpl, get_unknow_tpl, get_filter_list
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
@@ -72,7 +74,7 @@ template = """
 
 ## 健康检查
 @app.get("/")
-def healthz():
+def hello():
     return {"status": "ok", "code": 200,  "ollama": {
         "ollamaUrl": ollamaUrl,
         "ollamaModel": ollamaModel
@@ -82,12 +84,20 @@ def healthz():
 @app.get("/healthz")
 def healthz():
     return Response(content="OK", media_type="text/plain")
+    
 class QList(BaseModel):
     question: List[str]  # 字符串数组
+    size: int = 5
+
+def searchRooms(params):
+    print(params)
+
+    
 
 @app.post("/api/customer")
 async def apiCustomer(body: QList):
     q = body.question
+    limit = body.size if body.size > 0 else 5
     params = ask_question_with_ollama_toJson(template=get_search_params_tpl, params={"question": q}, model=ollamaModel)
     # 将无法解析的数据丢弃掉
     analyzes = filter_none_recursive(params)
@@ -106,38 +116,55 @@ async def apiCustomer(body: QList):
             "nprobe":  200
         }
     }
-    if type == 1: 
+    if type == 1:  #查房源
         if len(vQuestionsArr) < 1:
             return searchRoomPromptDetails()
-
-        collection_name='room_embeddings'
-        vdb.load_collection(collection_name)
-        vQuestions =encode_queries(questions=vQuestionsArr)
-        resp = vdb.search(
-            collection_name=collection_name,
-            data=vQuestions,
-            anns_field="embedding",
-            filter=buildRoomFilter(params),
-            output_fields=[
-                'room_unique_code',
-                'room_type_code', 
-                'store_address', 
-                'store_address', 
-                'store_name', 
-                'store_code', 
-                'region_name', 
-                'long_term_type_name',
-                'area',
-                'price'
-            ],
-            limit=10,  # 返回前10条数据
-            search_params=search_params
-        )
-        vdb.close()
+        rows = findRooms(params=params, limit=limit)
+        return {
+            'code': 200,
+            'type': type,
+            'question': q, 
+            'extJson': params, 
+            'size': limit,
+            'response': rows
+        }
+        # print(rows)
+        # collection_name='room_embeddings'
+        # vdb.load_collection(collection_name)
+        # vQuestions =encode_queries(questions=vQuestionsArr)
+        # resp = vdb.search(
+        #     collection_name=collection_name,
+        #     data=vQuestions,
+        #     anns_field="embedding",
+        #     filter=buildRoomFilter(params),
+        #     output_fields=[
+        #         'room_unique_code',
+        #         'room_type_code', 
+        #         'store_address', 
+        #         'store_address', 
+        #         'store_name', 
+        #         'store_code', 
+        #         'region_name', 
+        #         'long_term_type_name',
+        #         'area',
+        #         'price'
+        #     ],
+        #     limit=10,  # 返回前10条数据
+        #     search_params=search_params
+        # )
+        # vdb.close()
     elif type == 2:
         if len(vQuestionsArr) < 1:
             return searchStorePromptDetails()
-
+        rows = findStores(params=params, limit=limit)
+        return {
+            'code': 200,
+            'type': type,
+            'question': q, 
+            'extJson': params, 
+            'size': limit,
+            'response': rows
+        }
         vQuestions =encode_queries(questions=vQuestionsArr)
         collection_name='stores_embeddings'
         vdb.load_collection(collection_name)

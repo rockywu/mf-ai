@@ -1,10 +1,14 @@
 import pymysql
 
-db_host='home.wujialei.com'
-db_port=11406
-db_user='root'
-db_password='RwHome!0427'
-db_database='mf-ai'
+from ai_utils import getConfig
+
+db_host=getConfig('mysql.host')
+db_port=getConfig('mysql.port')
+db_user=getConfig('mysql.user')
+db_password=getConfig('mysql.password')
+db_database=getConfig('mysql.database')
+
+print (db_host, db_port, db_user, db_password, db_database)
 
 class MySQLConnectionSingleton:
     _instance = None  # 类的唯一实例
@@ -21,7 +25,7 @@ class MySQLConnectionSingleton:
                     user=db_user,
                     password=db_password,
                     database=db_database,
-                    port=db_port,
+                    port=int(db_port),
                     cursorclass=pymysql.cursors.DictCursor
                 )
                 print("数据库连接已建立")
