@@ -30,6 +30,7 @@ services:
       dockerfile: Dockerfile # 可选，明确指定 Dockerfile 名称，如果使用默认名称可省略
     image: mf-ai:last
     container_name: mf_ai_api
+    restart: always
     depends_on:
       - mf-ollama
     networks:
