@@ -7,7 +7,7 @@ from ai_utils import getConfig, filter_none_recursive
 from ai_ollama import ask_question_with_ollama_toJson, ask_question_with_ollama
 from typing import Optional, List
 from sql.stores import findStores
-from sql.rooms import findRooms
+from sql.rooms import findRooms, to_int
 from prompt_template import get_search_params_tpl, get_unknow_tpl, get_filter_list
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
@@ -31,54 +31,12 @@ app.add_middleware(
 ollamaModel = getConfig('ollama.model')
 ollamaUrl = getConfig('ollama.url')
 
-def to_int(value):
-    return int(value) if isinstance(value, str) and value.isdigit() else -1
-def buildRoomFilter(params):
-    minPrice = to_int(params['price_min'])
-    maxPirce = to_int(params['price_max'])
-    minArea = to_int(params['area_min'])
-    maxArea = to_int(params['area_max'])
-    origin = params.get('origin')
-    filters = []
-    if minPrice >= 0 and maxPirce >= 0:
-        if minPrice == maxPirce:
-            #附近附近查询
-            minPrice = minPrice - minPrice/4
-            maxPirce = maxPirce + maxPirce/4
-        filters.append(f" price >= {minPrice} && price <= {maxPirce} ")
-    if minArea >= 0 and maxArea >= 0:
-        if minArea == maxArea:
-            #附近附近查询
-            minArea = minArea - minArea/4
-            maxArea = maxArea + maxArea/4
-        filters.append(f" area >= {int(minArea)} && area <= {int(maxArea)} ")
-    if origin is not None:
-        filters.append(f' region_name like "{origin}" ')
-    return  " && ".join(filters) if len(filters) else None
-
-
-def buildStoreFilter(params):
-    print(params)
-    filters = None
-    return filters
-
-    
-
-# 定义模板
-template = """
-    Question: {question}
-    已检索到的相关信息: 
-    {context}
-    Answer: Let's think step by step.
-    请用简体中文回复。
-    """
-
 ## 健康检查
 @app.get("/")
 def hello():
     return {"status": "ok", "code": 200,  "ollama": {
-        "ollamaUrl": ollamaUrl,
-        "ollamaModel": ollamaModel
+        # "ollamaUrl": ollamaUrl,
+        # "ollamaModel": ollamaModel
     }}
 
 ## 健康检查
@@ -117,9 +75,14 @@ async def apiCustomer(body: QList):
             "nprobe":  200
         }
     }
+    questionLimit = to_int(params.get('limit'))
+    if questionLimit > 0:
+        limit = questionLimit
+        
     if type == 1:  #查房源
         if len(vQuestionsArr) < 1:
             return searchRoomPromptDetails()
+        
         rows = findRooms(params=params, limit=limit)
         return {
             'code': 200,
@@ -166,19 +129,19 @@ async def apiCustomer(body: QList):
             'size': limit,
             'response': rows
         }
-        vQuestions =encode_queries(questions=vQuestionsArr)
-        collection_name='stores_embeddings'
-        vdb.load_collection(collection_name)
-        resp = vdb.search(
-            collection_name=collection_name,
-            data=vQuestions,
-            anns_field="embedding",
-            filter=buildStoreFilter(params),
-            output_fields=['store_address', 'store_address', 'store_name', 'store_code', 'region_name'],
-            limit=50,  # 返回前10条数据
-            search_params=search_params
-        )
-        vdb.close()
+        # vQuestions =encode_queries(questions=vQuestionsArr)
+        # collection_name='stores_embeddings'
+        # vdb.load_collection(collection_name)
+        # resp = vdb.search(
+        #     collection_name=collection_name,
+        #     data=vQuestions,
+        #     anns_field="embedding",
+        #     filter=buildStoreFilter(params),
+        #     output_fields=['store_address', 'store_address', 'store_name', 'store_code', 'region_name'],
+        #     limit=50,  # 返回前10条数据
+        #     search_params=search_params
+        # )
+        # vdb.close()
 
     elif type == 3:
         No = random.randrange(1000, 10000)

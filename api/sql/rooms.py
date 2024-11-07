@@ -7,7 +7,7 @@ def to_int(value):
 def getMinMax(min, max, radius = 5):
     if min == max and min >= 0:
         min = min - min/radius
-        max = max - max/radius
+        max = max + max/radius
     return min, max
         
 
@@ -18,8 +18,8 @@ def findRooms(params, offset = None, limit = None):
     maxPirce = to_int(params['price_max'])
     minArea = to_int(params['area_min'])
     maxArea = to_int(params['area_max'])
-    minPrice, maxPirce = getMinMax(minPrice, maxPirce)
-    minArea, maxArea = getMinMax(minArea, maxArea)
+    minPrice, maxPirce = getMinMax(min=minPrice, max=maxPirce)
+    minArea, maxArea = getMinMax(min=minArea, max=maxArea)
     args = []
     if minPrice >= 0:
         filters.append('price >= %s')
@@ -30,11 +30,11 @@ def findRooms(params, offset = None, limit = None):
     if minArea >= 0:
         filters.append('area >= %s')
         args.append(minArea)
-    if maxPirce >= 0:
+    if maxArea >= 0:
         filters.append('area <= %s')
-        args.append(maxPirce)
+        args.append(maxArea)
+    print('minPrice', minPrice, 'maxPirce', maxPirce, 'minArea', minArea, 'maxArea', maxArea)
     stores = []
-    storesMap = {}
     if origin is not None:
         storeSql = buildSearchSql(where='region_name like %s', table_name="stores")
         stores = query_mysql(storeSql, [origin])
@@ -44,6 +44,7 @@ def findRooms(params, offset = None, limit = None):
         filters.append('store_code in %s')
         args.append(storeCodes)
     roomtypeSql = buildSearchSql(table_name='rooms', where=" and ".join(filters), columns="MIN(room_unique_code) as room_unique_code",  expansion="group by room_type_code", limit=limit)
+    print('args', args)
     tmpRooms = query_mysql(roomtypeSql, args)
     resultSql = f"""SELECT
             r.store_code,

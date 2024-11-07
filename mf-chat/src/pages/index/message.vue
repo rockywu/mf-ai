@@ -133,13 +133,13 @@ export default {
       }).reverse().map(v => v.content)
       questions.unshift(content)
       const qs = new Set(questions)
-      this.reqQuestion(Array.from(qs)).then(res => {
-        uni.hideLoading()
-        this.addMessage({
+      this.addMessage({
           content: content,
           userType: 'self',
           messageType: null,
         })
+      this.reqQuestion(Array.from(qs)).then(res => {
+        uni.hideLoading()
         if (!res) {
           this.addMessage({
             content: '网络异常，请重试',
