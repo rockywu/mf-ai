@@ -12,6 +12,7 @@ from prompt_template import get_search_params_tpl, get_unknow_tpl, get_filter_li
 from ai_milvus import MilvusDatabase
 from ai_encode import encode_queries
 
+
 app = FastAPI()
 # 配置允许的来源
 origins = [
@@ -182,11 +183,16 @@ async def apiCustomer(body: QList):
     elif type == 3:
         No = random.randrange(1000, 10000)
         return {
-        'code': 200,
-        'type': 3,
-        'response': f"人工客服：{No} \n 很高兴为您服务"
-    }
-
+            'code': 200,
+            'type': type,
+            'response': f"人工客服：{No} \n 很高兴为您服务"
+        }
+    elif type == 4:
+        return {
+            'code': 200,
+            'type': type,
+            'response': f"您好，我是魔方智选小助手。 \n 请描述您的租房需求，我将会为您精准推荐！"
+        }
     else:
         # unknowParams = ask_question_with_ollama_toJson(template=get_unknow_tpl, params={'question': q}, model=ollamaModel)
         return searchRoomPromptDetails()

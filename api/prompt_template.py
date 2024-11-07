@@ -5,7 +5,8 @@ get_search_params_tpl = """
     问题：{question}
     问题是由多个问题串联起来的，每个问题权重从前到后依次降低，最后将问题分析结果合并成一个结果集返回给我。
     请从以下描述中提取：
-    查询类型: 类型type, 类型枚举：0-未知类型、1-查房源、2-查门店、3-人工客服。当出现：联系人工客服，由人工解答类似的含义时,type就可以为3
+    查询类型: 类型type, 类型枚举：0-未知类型、1-查房源、2-查门店、3-人工客服(当出现：联系人工客服，由人工解答类似的含义时,type就可以为3), 4 - 询问你是谁
+        补充: 当询问你是谁，你叫什么名字，你是机器人么？，你是真人么？你是活人么？这类的问题时，类型返回4
     价格范围: 最小价格price_min， 最大价格 price_max, 示例：价格范围都是整数
     面积范围: 最小价格area_min， 最大价格 area_max，示例：面积范围都是整数
     门店名 stroe_name,门店区域 origin, 用户所在地 location
@@ -22,7 +23,7 @@ get_search_params_tpl = """
     如果输出的多个xml结果，请按照你的想法进行调整，只返回唯一的一个xml结构
     output:
     <response>
-        <type>内容只返回：0、1、2、3</type>
+        <type>内容只返回：0 | 1 | 2 | 3 | 4</type>
         <price_min>value</price_min>
         <price_max>value</price_max>
         <area_min>value</area_min>
