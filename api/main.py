@@ -148,27 +148,19 @@ async def apiCustomer(body: QList):
         return {
             'code': 200,
             'type': type,
+            'extJson': params, 
             'response': f"人工客服：{No} \n 很高兴为您服务"
         }
     elif type == 4:
         return {
             'code': 200,
             'type': type,
+            'extJson': params, 
             'response': f"您好，我是魔方智选小助手。 \n 请描述您的租房需求，我将会为您精准推荐！"
         }
     else:
         # unknowParams = ask_question_with_ollama_toJson(template=get_unknow_tpl, params={'question': q}, model=ollamaModel)
         return searchRoomPromptDetails()
-        
-       
-    #尝试从向量数据库中排查数据
-    return {
-        'code': 200,
-        'type': type,
-        'question': q, 
-        'extJson': params, 
-        'response': resp[0] if resp[0] else []
-    }
 
     
 def searchRoomPromptDetails(): 
