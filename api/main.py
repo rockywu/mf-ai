@@ -46,7 +46,7 @@ def healthz():
     
 class QList(BaseModel):
     question: List[str]  # 字符串数组
-    size: int = 5
+    size: int = 12
 
 def searchRooms(params):
     print(params)
